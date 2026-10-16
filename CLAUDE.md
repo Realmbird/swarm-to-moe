@@ -47,6 +47,19 @@ The paper draft (moe_swarm_paper.docx, Oct 5) is placeholders except base accura
 - H200 capacity: 32 plain 20Bs per box vs 128 with 4× MoE parallelisation (120B ≈ 6–7 per box). Open tension: this is batch/KV capacity, not FLOPs; Martin's own verdict is "no compute benefit". Get the actual numbers and reconcile before citing either.
 - Not yet known: post-LoRA text-ID accuracy, post-LoRA G1 retention, what "performance" means.
 
+**E0-b (Christopher, 2026-10-16, this repo, `results/E0/e0b.json`)** — base gpt-oss-20b, router free, four role system prompts (planner / critic / implementer / verifier, placeholders) + no-role on the same 200 inputs (100 GSM8K-train, 100 MMLU-val), greedy 128 tokens, partition P-all `178d51be000d` only used as a labelling.
+
+| role-ID from routing (chance 25%) | all layers | 0–7 | 8–15 | 16–23 | 10–14 | entropy only | shuffled labels |
+|---|---|---|---|---|---|---|---|
+| generated tokens | **0.84** | 0.74 | 0.83 | 0.80 | 0.79 | 0.67 | 0.26 |
+| prompt tokens | 1.00 | 0.99 | 0.99 | 0.99 | 0.99 | | |
+
+- Text TF-IDF on the same generations: 0.83. So routing carries about as much prompted-role information as the words, **not shown to be more**: the generations differ by role, and routing tracks tokens. E0-c (teacher-forced identical continuation under each role prompt) is the control that separates prompt from content; pending.
+- No-role vs role (binary, chance 50%): planner 0.97, critic 0.92, verifier 0.92, implementer 0.78.
+- Between-role routing JSD 0.012 vs input-halves floor ≈ 0.001 (≈ 12×); the token-halves and batch-shape floors were 0.000, so the reported 68× ratio is floor-dominated and should not be quoted.
+- Role preference against P-all private sets ≈ 0 (−0.002): the profiled partition is role-blind, as E2 needs.
+- Sanity gates all passed on the real model before the run (`results/E0/sanity.json`); routing was bit-reproducible across batch 64 vs 32 here.
+
 ## 3. Standing conclusions (do not relitigate without new data)
 
 - Expert partitioning gives no compute or scaling benefit over serving N copies from one weights file with N KV caches (what vLLM/SGLang already do). The only savings are one-file memory, which a plain swarm already gets.
