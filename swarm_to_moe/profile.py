@@ -74,8 +74,11 @@ class PeakTracker:
 
 @torch.no_grad()
 def profile_experts(model, tokenizer, texts: Sequence[str], batch_size: int, return_sigma: bool = False,
-                    progress: bool = True):
+                    progress: bool = True, max_length: int = 1024):
     """Prefill-only profiling over ``texts`` (already chat-formatted strings), left-padded batches.
+
+    Texts are truncated to ``max_length`` tokens (eager attention is quadratic in T; UltraChat turns can run to
+    thousands of tokens) and processed in length-sorted batches so padding and peak memory stay small.
 
     Returns (usage [L,E] float64 = top-k selection counts over non-pad tokens,
              peak  [L,E] float64 = max L2 norm of each expert's individual output over non-pad tokens)
@@ -95,10 +98,15 @@ def profile_experts(model, tokenizer, texts: Sequence[str], batch_size: int, ret
     s2 = np.zeros(L)
     cnt = np.zeros(L)
     tracker = PeakTracker(model)
+    # length-sorted order: homogeneous batches, little padding, bounded peak memory
+    lengths = [len(tokenizer(t, add_special_tokens=False, truncation=True, max_length=max_length)["input_ids"])
+               for t in texts]
+    order = sorted(range(len(texts)), key=lambda i: lengths[i])
+    texts = [texts[i] for i in order]
     with MoERoutingHook(model, rule=FreeRouting(), record_logits=return_sigma) as hook, tracker:
         for s in tqdm(range(0, len(texts), batch_size), desc="profile", disable=not progress):
             enc = tokenizer(list(texts[s:s + batch_size]), return_tensors="pt", padding=True,
-                            add_special_tokens=False)
+                            add_special_tokens=False, truncation=True, max_length=max_length)
             enc = {k: v.to(device) for k, v in enc.items()}
             mask = enc["attention_mask"].bool()
             tracker.valid = mask.reshape(-1)

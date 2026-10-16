@@ -1,0 +1,102 @@
+{
+  "provenance": {
+    "model_id": "openai/gpt-oss-20b",
+    "revision_requested": null,
+    "commit": "6cee5e81ee83917806bbde320786a8fb61efebee",
+    "transformers": "5.20.0",
+    "torch": "2.8.0+cu128",
+    "chat_template_sha256": "a4c9919cbbd4acdd51ccffe22da049264b1b73e59055fa58811a99efbd7c8146",
+    "dtype": "torch.bfloat16",
+    "attn_implementation": "eager",
+    "experts_implementation": "grouped_mm",
+    "gpu": "NVIDIA H200"
+  },
+  "run": {
+    "argv": [
+      "scripts/build_partition.py",
+      "--out-dir",
+      "results/E0",
+      "--n-prompts",
+      "2000",
+      "--batch-size",
+      "32"
+    ],
+    "args": {
+      "model": "openai/gpt-oss-20b",
+      "revision": null,
+      "n_prompts": 2000,
+      "seed": 0,
+      "batch_size": 32,
+      "n_shared": 16,
+      "super_frac": 0.01,
+      "late_start": 12,
+      "rand_seed": 0,
+      "out_dir": "results/E0",
+      "out": null
+    },
+    "started_utc": "2026-10-16T08:29:12Z",
+    "host": "69860c6d03e3",
+    "python": "3.12.3",
+    "cwd": "/root/swarm-to-moe/.claude/worktrees/claude-md-seed"
+  },
+  "n_prompts_per_source": {
+    "gsm8k_train": 500,
+    "arc_challenge_train": 500,
+    "mmlu_val": 500,
+    "ultrachat_train_sft": 500
+  },
+  "profile_seed": 0,
+  "total_tokens_profiled": 342618.0,
+  "hashes": {
+    "all": "178d51be000d",
+    "late": "a02ecc458f62",
+    "random": "107c3c6c64e7"
+  },
+  "n_super": 8,
+  "role_private_usage": {
+    "all": {
+      "A": 1173561.0,
+      "B": 1172129.0,
+      "C": 1175595.0,
+      "D": 1176963.0
+    },
+    "late": {
+      "A": 434610.0,
+      "B": 438778.0,
+      "C": 439361.0,
+      "D": 435725.0
+    },
+    "random": {
+      "A": 3786033.0,
+      "B": 4653308.0,
+      "C": 4119796.0,
+      "D": 4103383.0
+    }
+  },
+  "router_sigma": [
+    1.0318426934740093,
+    0.7176406291659979,
+    0.6804126637223312,
+    0.5926400453151508,
+    0.6646213821723096,
+    0.664474401922839,
+    0.7665419859576809,
+    0.8520431535745626,
+    0.839728387976939,
+    0.7847934403411763,
+    0.8317974591774072,
+    0.9539822200568824,
+    0.9802954276954587,
+    0.9617803904385146,
+    0.9356735229881876,
+    1.0735268056353615,
+    1.3207709132751395,
+    1.0291793142030956,
+    1.0395326591894851,
+    1.4429266292191067,
+    1.200959162931215,
+    1.5219881989396353,
+    1.3505218282260472,
+    2.4747279228488344
+  ]
+}

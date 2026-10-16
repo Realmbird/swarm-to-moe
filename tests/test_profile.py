@@ -14,8 +14,16 @@ class CharTokenizer:
     pad_token_id = 0
     padding_side = "left"
 
-    def __call__(self, texts, return_tensors="pt", padding=True, add_special_tokens=False):
+    def __call__(self, texts, return_tensors=None, padding=True, add_special_tokens=False,
+                 truncation=False, max_length=None):
+        single = isinstance(texts, str)
+        if single:
+            texts = [texts]
         seqs = [[2 + (ord(c) % 250) for c in t] for t in texts]
+        if truncation and max_length is not None:
+            seqs = [s[:max_length] for s in seqs]
+        if return_tensors is None:
+            return {"input_ids": seqs[0] if single else seqs}
         T = max(len(s) for s in seqs)
         ids = torch.zeros(len(seqs), T, dtype=torch.long)
         att = torch.zeros(len(seqs), T, dtype=torch.long)
