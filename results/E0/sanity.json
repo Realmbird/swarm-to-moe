@@ -1,0 +1,85 @@
+{
+  "provenance": {
+    "model_id": "openai/gpt-oss-20b",
+    "revision_requested": null,
+    "commit": "6cee5e81ee83917806bbde320786a8fb61efebee",
+    "transformers": "5.20.0",
+    "torch": "2.8.0+cu128",
+    "chat_template_sha256": "a4c9919cbbd4acdd51ccffe22da049264b1b73e59055fa58811a99efbd7c8146",
+    "dtype": "torch.bfloat16",
+    "attn_implementation": "eager",
+    "experts_implementation": "grouped_mm",
+    "gpu": "NVIDIA H200"
+  },
+  "run": {
+    "argv": [
+      "scripts/sanity.py",
+      "--partition",
+      "results/E0/partition_all.json"
+    ],
+    "args": {
+      "model": "openai/gpt-oss-20b",
+      "revision": null,
+      "partition": "results/E0/partition_all.json",
+      "partition_late": null,
+      "router_sigma": "results/E0/router_sigma.npy",
+      "n_prompts": 32,
+      "new_tokens": 32,
+      "seed": 0,
+      "force_layer": 12,
+      "out": "results/E0/sanity.json"
+    },
+    "started_utc": "2026-10-16T08:30:38Z",
+    "host": "69860c6d03e3",
+    "python": "3.12.3",
+    "cwd": "/root/swarm-to-moe/.claude/worktrees/claude-md-seed"
+  },
+  "partition_hash": "178d51be000d",
+  "sigma": [
+    1.0318427085876465,
+    0.7176406383514404,
+    0.6804126501083374,
+    0.5926400423049927,
+    0.6646213531494141,
+    0.6644744277000427,
+    0.7665419578552246,
+    0.8520431518554688,
+    0.8397284150123596,
+    0.7847934365272522,
+    0.8317974805831909,
+    0.9539822340011597,
+    0.9802954196929932,
+    0.9617803692817688,
+    0.9356735348701477,
+    1.0735268592834473,
+    1.3207708597183228,
+    1.029179334640503,
+    1.0395326614379883,
+    1.4429266452789307,
+    1.2009592056274414,
+    1.5219881534576416,
+    1.3505218029022217,
+    2.4747278690338135
+  ],
+  "force": {
+    "layer": 12,
+    "expert": 16
+  },
+  "results": {
+    "hook_off_free": true,
+    "hook_off_soft_delta0": true,
+    "uninstall_restores": true,
+    "hard_all_rule_holds": true,
+    "hard_all_changes_output": true,
+    "soft_0.5_rule_holds": true,
+    "force_expert_recorded": true,
+    "force_expert_changes_output": true
+  },
+  "all_pass": true,
+  "seconds": 38.58055830001831,
+  "n_rows_differing": {
+    "hard_all": 32,
+    "soft_0.5": 31,
+    "force": 12
+  }
+}
