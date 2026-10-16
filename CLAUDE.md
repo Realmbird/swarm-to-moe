@@ -74,9 +74,9 @@ Known constraints: an MoE forward pass is one token stream, a swarm is many turn
 3. Feed role-prompted inputs. Measure: fraction of tokens routed to the matching role's private experts vs. other roles' vs. shared, per layer. Compare to the unmerged base model and to a shuffled-role control.
 4. If the free router prefers the matching role's experts → the router recognises roles → routing is a role probe. Ties directly to Martin's Oct 12 spike (attention heads tracking roles on gpt-20b and qwen3-32b) and to Risa.
 
-Cost: ~1 H200-hour. Prereqs: access to the private repo + LoRA checkpoints.
+Cost: ~1 H200-hour. Prereqs: access to the private repo + LoRA checkpoints. Pre-registered as **E1** (`experiments/E1-free-router-role-preference/PREREG.md`); stays blocked on Martin's checkpoints.
 
-Before scaling anything: Christopher committed (Oct 5) to a reproducibility check on the 20b results before any move to 120b. Do that first.
+**Decision 2026-10-16 (Christopher):** do not wait on Martin's artifacts and do not spend time reproducing his construction. The reproducibility check (E0-a) is dropped; E0-b (role identifiability from free routing on the base model, `experiments/E0-base-routing-by-role/PREREG.md`) is kept because it is the control arm. The main line is **E2** (`experiments/E2-swarm-to-moe-self-distilled/PREREG.md`): build four agents that are plainly different outside by self-distilling role-prompted outputs into LoRA on each role's private expert stripe (HardSplit on during training, router frozen), then switch the rule off and ask whether the free router finds the roles and whether role identity survives in text. Pass/fail and controls (placebo LoRA of matched norm, shuffled labels, base-free, prompted-roles-on-base) are in the pre-registration. Infra: `swarm_to_moe/` (hook, partition, metrics, lora, distill) and `scripts/e2_*.py` in this repo; runs on the project's Runpod H200 (`/workspace` HF cache). E3 (goal adoption as routing convergence before text) follows if E2 shows the router finds the roles.
 
 ## 5. Infra, budget, logistics
 

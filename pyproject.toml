@@ -1,0 +1,30 @@
+[project]
+name = "swarm-to-moe"
+version = "0.0.1"
+description = "Swarm -> MoE: do swarm role dynamics survive compression into MoE routing? (gpt-oss-20b)"
+requires-python = ">=3.11"
+dependencies = [
+  "torch>=2.4",
+  "transformers>=5.0",
+  "accelerate",
+  "numpy",
+  "scipy",
+  "scikit-learn",
+  "datasets",
+  "safetensors",
+  "pyyaml",
+]
+
+[project.optional-dependencies]
+dev = ["pytest"]
+
+[build-system]
+requires = ["setuptools>=64"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools.packages.find]
+include = ["swarm_to_moe*"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+filterwarnings = ["ignore::UserWarning"]
