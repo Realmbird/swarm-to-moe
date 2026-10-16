@@ -8,11 +8,11 @@ Martin's agents were different inside, same outside. We build the mirror case: f
 
 ## Construction
 
-**Step 1, agents that differ outside (self-distillation).** Roles: planner, critic, implementer, verifier (`swarm_to_moe/prompts.py`); chosen so the *style and objective* differ, not the topic. Inputs: ~2,000 seeded prompts from GSM8K train, ARC-Challenge train, MMLU validation and UltraChat (same pool as the partition profiling, disjoint seed). Teacher = base model with the role's system prompt, greedy, Harmony `final` channel kept, 256 new tokens. Student target: **no role prompt** → that role's output. Each role's rows are trained under `HardSplit` with its own agent id on partition P-all, so every token of role r passes through one of r's private experts in every layer. Trainable parameters: LoRA (rank 16) on the private experts' `gate_up_proj` and `down_proj` only; router, attention, shared experts frozen. All four roles trained jointly in mixed batches. Budget: ≤ 3 epochs, ≤ 2 H200-hours. Checkpoint = the four LoRA sets, which merge into one weights file by construction (disjoint experts).
+**Step 1, agents that differ outside (self-distillation).** Roles: planner, critic, implementer, verifier (`swarm_to_moe/prompts.py`); chosen so the *style and objective* differ, not the topic. Inputs: ~2,000 seeded prompts from GSM8K train, ARC-Challenge train, MMLU validation and UltraChat (same pool as the partition profiling, disjoint seed). Teacher = base model with the role's system prompt, greedy, Harmony `final` channel kept, 512 new tokens (256 truncated 62% of planner outputs in a smoke run; truncated rows are dropped from training). Student target: **no role prompt** → that role's output. Each role's rows are trained under `HardSplit` with its own agent id on partition P-all, so every token of role r passes through one of r's private experts in every layer. Trainable parameters: LoRA (rank 16) on the private experts' `gate_up_proj` and `down_proj` only; router, attention, shared experts frozen. All four roles trained jointly in mixed batches. Budget: ≤ 3 epochs, ≤ 2 H200-hours. Checkpoint = the four LoRA sets, which merge into one weights file by construction (disjoint experts).
 
 **"Different outside" gate (must pass before step 2 counts):** with the rule ON and **no role prompt**, 5-fold (grouped by input) TF-IDF text-ID accuracy across the four agents on 300 held-out inputs ≥ 60% (chance 25%; Martin's prompted roles reached 71%, expert agents before LoRA 27–32%). Also: retention vs base on 300 GSM8K test items ≥ 80% for every agent (we accept some loss; we are not optimising capability).
 
-**Step 2, compress and free the router.** Merge LoRA into the expert weights. Set routing to `FreeRouting`. Nothing else changes.
+**Step 2, compress and free the router.** The four adapter sets live on disjoint experts of one base, so they are one model by construction; they are kept as fp32 adapters attached to the bf16 base rather than folded into the weights, because folding a small delta into bf16 experts loses up to 85% of its norm (measured on the real model before any run). Set routing to `FreeRouting`. Nothing else changes.
 
 ## Measurements (all on 300 held-out inputs per condition, 2 batch shapes, 3 subset seeds)
 
@@ -22,7 +22,7 @@ For the merged model with the router free:
 |---|---|---|
 | M-free-role | matching role system prompt | does the free router send role-r prompts to r's experts? |
 | M-free-none | no system prompt | what does the model become when nobody tells it who it is |
-| M-free-shuffled | derangement of role labels | control: must be ≈ 0 preference |
+| M-free-shuffled | M-free-role routing re-scored under a derangement of role labels | control: labels must matter. By construction, if the true preference is x the deranged score is ≈ −x/3 (every slot credited to the wrong role counts against), so the committed check is M-shuffled − B-shuffled ≤ 0 and strictly below M-free-role − B-free-role |
 | M-rule | HardSplit, correct agent | upper reference (the swarm as trained) |
 | B-free-role | base model, role prompt | E0-b arm: the partition's built-in bias and prompt-only routing signal |
 | P-free-role | placebo: random LoRA noise of matched Frobenius norm on the same private experts | rules out "any perturbation attracts the router" |
@@ -36,7 +36,7 @@ Primary metrics:
 
 ## Pass / fail (committed)
 
-- **Survives (H1):** M-free-role preference minus B-free-role > 0 with CI excluding 0 in layers 12–23 **and** text-ID under M-free-role ≥ 40% **and** P-free-role, M-free-shuffled ≈ 0.
+- **Survives (H1):** M-free-role preference minus B-free-role > 0 with CI excluding 0 in layers 12–23 **and** text-ID under M-free-role ≥ 40% **and** P-free-role minus B-free-role ≈ 0 (CI includes 0) **and** the shuffled check above holds.
 - **Eaten (H0):** preference CI includes 0 or is indistinguishable from placebo, **and** text-ID under M-free-role collapses toward the pre-LoRA 27–32%.
 - **Partial:** router prefers the right experts (preference > 0) but text-ID < 40%: the router finds the stripe but the stripe no longer carries the role once it is one of four voices. Report as partial with both numbers.
 
